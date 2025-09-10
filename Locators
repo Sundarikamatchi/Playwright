@@ -1,0 +1,103 @@
+package com.play.practice;
+
+import java.util.Arrays;
+import java.util.List;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import com.microsoft.playwright.Browser;
+import com.microsoft.playwright.BrowserContext;
+import com.microsoft.playwright.BrowserType;
+import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.Page;
+import com.microsoft.playwright.Playwright;
+import com.microsoft.playwright.assertions.PlaywrightAssertions;
+
+public class Play {
+	private static Playwright Jan;
+	private static Browser Jan1;
+	private static Page Jan2;
+	private static BrowserContext bro;
+		
+	@BeforeAll
+	public static void SetupBro() {
+		Jan = Playwright.create();
+		Jan1 = Jan.chromium().launch( new BrowserType.LaunchOptions().setHeadless(false)
+				.setArgs(Arrays.asList("--no-sandbox","--disable-extensions","--disable-gpu"))
+				);
+		bro = Jan1.newContext();
+		Jan2 = Jan1.newPage();
+	}
+	@BeforeEach
+	public void setup() {
+		Jan2 = bro.newPage();
+	}
+ 
+	@AfterAll
+	public static void teardown() {
+		Jan1.close();
+		Jan.close();
+	}
+ 
+	@Test
+	void OpenPage() {
+ 
+		Jan2.navigate("https://practicesoftwaretesting.com/");
+		String title = Jan2.title();
+		Assertions.assertTrue(title.contains("Practice Software Testing"));
+	}
+ 
+	@Test
+	void Search() {
+		Jan2.navigate("https://practicesoftwaretesting.com/");
+		Locator search = Jan2.locator("[placeholder='Search']");
+		search.scrollIntoViewIfNeeded();
+		search.fill("Pliers");
+		Jan2.locator("button:has-text('Search')").click();
+		int Ni = Jan2.locator(".card").count();
+		Assertions.assertTrue(Ni > 1);
+	}
+	
+	@DisplayName("Locating Css")
+    @Nested
+    class LocatingUsingCss{
+		
+		@BeforeEach
+		void openPage(){
+			Jan2.navigate("https://practicesoftwaretesting.com/contact");
+		}
+		
+		@DisplayName("By id")
+		@Test
+		void ID(){
+			//FirstName Field
+			Jan2.locator("#first_name").fill("Kams");
+			PlaywrightAssertions.assertThat(Jan2.locator("#first_name")).hasValue("Kams");
+		}
+		
+		@DisplayName("By Css")
+		@Test
+		void Css() {
+			//SendButton
+			Jan2.locator("#first_name").fill("Kams");
+			Jan2.locator(".btnSubmit").click();
+			List<String> alertMessages = Jan2.locator(".alert").allTextContents();
+			Assertions.assertTrue(!alertMessages.isEmpty());
+		}
+		
+		@DisplayName("By attribute")
+		@Test
+		void attribute() {
+			//SendButton
+			Jan2.locator("input[Placeholder ='YourLastName*']").fill("Sundari");
+			PlaywrightAssertions.assertThat(Jan2.locator("#last_name")).hasValue("Sundari");
+			Jan2.locator(".btnSubmit").click();
+			List<String> alertMessages = Jan2.locator(".alert").allTextContents();
+			Assertions.assertTrue(!alertMessages.isEmpty());
+		}
+	}
+}
