@@ -1,0 +1,38 @@
+package com.openWeb;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test; 
+import com.microsoft.playwright.Browser;
+import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.Page;
+import com.microsoft.playwright.Playwright;
+ 
+public class Play {
+	@Test
+void OpenPage() {
+	 Playwright Jan = Playwright.create();
+	 Browser Jan1 = Jan.chromium().launch();
+	 Page Jan2 = Jan1.newPage();
+ //we are using practiceofwaretesting.com
+	 Jan2.navigate("https://practicesoftwaretesting.com/");
+	 String title = Jan2.title();
+//To check the loaded page
+	 Assertions.assertTrue(title.contains("Practice Software Testing"));
+	 Jan1.close();
+	 Jan.close();
+}
+	@Test
+	void Search() {
+		 Playwright Jan = Playwright.create();
+		 Browser Jan1 = Jan.chromium().launch();
+		 Page Jan2 = Jan1.newPage();
+		 Jan2.navigate("https://practicesoftwaretesting.com/");
+		 Locator search = Jan2.locator("[placeholder='Search']");
+		 search.scrollIntoViewIfNeeded();
+		 search.fill("Pliers");
+		 Jan2.locator("button:has-text('Search')").click();
+		 int Ni = Jan2.locator(".card").count();
+		 Assertions.assertTrue(Ni > 1);
+		 Jan1.close();
+		 Jan.close();
+	}
+}
