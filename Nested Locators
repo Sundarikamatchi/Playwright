@@ -1,0 +1,81 @@
+package com.play.practice;
+
+import java.util.Arrays;
+import java.util.List;
+
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import com.microsoft.playwright.Browser;
+import com.microsoft.playwright.BrowserContext;
+import com.microsoft.playwright.BrowserType;
+import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.Page;
+import com.microsoft.playwright.Playwright;
+import com.microsoft.playwright.options.AriaRole;
+import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
+
+public class Play {
+	private static Playwright play;
+	private static Browser browser;
+	private static Page page;
+	private static BrowserContext bContext;
+		
+	@BeforeAll
+	public static void SetupBro() {
+		play = Playwright.create();
+		browser = play.chromium().launch( new BrowserType.LaunchOptions().setHeadless(false)
+				.setArgs(Arrays.asList("--start-maximized","--no-sandbox","--disable-extensions","--disable-gpu")));
+		play.selectors().setTestIdAttribute("data-test");
+	}
+	@BeforeEach
+	public void setup() {
+		//for maximizing browser
+		bContext = browser.newContext(new Browser.NewContextOptions().setViewportSize(null));
+		page = bContext.newPage();
+	}
+ 
+	@AfterAll
+	public static void teardown() {
+		  if (browser != null) browser.close();
+		  if (play != null) play.close();
+  //we can also use this 2 following comments
+	//	browser.close();
+	//	play.close();
+	}
+	
+	@AfterEach
+	void closeContext() {
+		bContext.close();
+	}
+ 	
+		@DisplayName("Search for pliers")
+		@Test
+		void ID(){
+		 //pliers
+			page.navigate("https://practicesoftwaretesting.com");
+			Locator search = page.locator("[placeholder='Search']");
+			search.scrollIntoViewIfNeeded();
+			search.fill("Pliers");
+           page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Search")).click();
+          assertThat(page.locator(".card")).hasCount(4);
+           
+           //Creating product list
+           List<String> ProductNames = page.getByTestId("product-name").allTextContents();
+           Assertions.assertThat(ProductNames).allMatch(name -> name.contains("Pliers"));
+           
+           //Checking the list for outof stock item
+           Locator OOS = page.locator(".card").filter(new Locator.FilterOptions().setHasText("Out Of Stock"))
+        		   .getByTestId("product-name");
+           
+           assertThat(OOS).hasCount(1);
+           assertThat(OOS).hasText("Long Nose Pliers");
+           
+		}
+		
+	
+}
