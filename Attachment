@@ -1,0 +1,102 @@
+package com.play.practice;
+
+import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import com.microsoft.playwright.Browser;
+import com.microsoft.playwright.BrowserContext;
+import com.microsoft.playwright.BrowserType;
+import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.Page;
+import com.microsoft.playwright.Playwright;
+import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
+
+public class Play {
+	private static Playwright play;
+	private static Browser browser;
+	private static Page page;
+	private static BrowserContext bContext;
+		
+	@BeforeAll
+	public static void SetupBro() {
+		//Instances
+		play = Playwright.create();
+		browser = play.chromium().launch( new BrowserType.LaunchOptions().setHeadless(false)
+				.setArgs(Arrays.asList("--start-maximized","--no-sandbox","--disable-extensions","--disable-gpu")));
+		//play.selectors().setTestIdAttribute("data-test");
+	}
+	@BeforeEach
+	public void setup() {
+		//for maximizing browser
+		bContext = browser.newContext(new Browser.NewContextOptions().setViewportSize(null));
+		page = bContext.newPage();
+	}
+ 
+	@AfterAll
+	public static void teardown() {
+		  if (browser != null) browser.close();
+		  if (play != null) play.close();
+  //we can also use this 2 following comments
+	//	browser.close();
+	//	play.close();
+	}
+	
+	@AfterEach
+	void closeContext() {
+		bContext.close();
+	}
+ 	
+		@DisplayName("Interating with Input Fields")
+		@Nested
+		class Input {
+			
+			@BeforeEach
+			void OpenPage() {
+				page.navigate("https://practicesoftwaretesting.com/contact");
+			}
+			
+			@DisplayName("Input")
+			@Test
+			void fieldValues() throws URISyntaxException {
+				
+				//Input field with manual data
+				var FirstName = page.getByLabel("First Name"); 
+				var LastName = page.getByLabel("Last Name"); 
+				var Email = page.getByLabel("Email address"); 
+				var Message = page.getByLabel("Message");
+				//Input field with dropdown
+				var Subject = page.getByLabel("Subject");
+				/* We can also use select from drop down based on index value
+				 * getByLabel(new SelectOption().setIndex(2));
+				 */
+				//Attachment(image)
+				var Image = page.getByLabel("Attachment");
+				
+				
+				FirstName.fill("Jan");
+				LastName.fill("ani");
+				Email.fill("Jan@gmail.com");
+				Message.fill("Interacting");
+				Subject.selectOption("Return");
+				
+				Path location = Paths.get(ClassLoader.getSystemResource("Screenshot_15-7-2025_153510_client.wvd.microsoft.com.jpeg").toURI());
+				Locator uploadField = page.locator("#attachment");
+				uploadField.setInputFiles(location);
+
+				
+				assertThat(FirstName).hasValue("Jan");
+				assertThat(LastName).hasValue("ani");
+				assertThat(Email).hasValue("Jan@gmail.com");
+				assertThat(Message).hasValue("Interacting");
+				assertThat(Subject).hasValue("return");
+				
+				String File = uploadField.inputValue();
+				org.assertj.core.api.Assertions.assertThat(File).contains("Screenshot");
